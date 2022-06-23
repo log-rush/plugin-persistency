@@ -1,18 +1,10 @@
 package pluginPersistency
 
-// TODO: use package fpr type defs
-type xLog struct {
-	Message   string `json:"message"`
-	TimeStamp int    `json:"timestamp"`
-	Stream    string `json:"stream"`
-}
+import (
+	logRush "github.com/log-rush/server-devkit"
+	"github.com/log-rush/server-devkit/pkg/devkit"
+)
 
-type xLogPlugin interface {
-	HandleLog(streamId string, log xLog)
-}
-type xPlugin interface {
-	LogPlugin() xLogPlugin
-}
 type Config struct {
 	Adapter          StorageAdapter
 	StoragePath      string
@@ -22,22 +14,20 @@ type Config struct {
 
 type PersistencyPlugin struct {
 	config    Config
-	logPlugin xLogPlugin
+	logPlugin logPlugin
+	Plugin    logRush.Plugin
 }
 
-func NewPersistencyPlugin(config Config) (xPlugin, error) {
+func NewPersistencyPlugin(config Config) (PersistencyPlugin, error) {
 	plugin := PersistencyPlugin{
 		config:    config,
 		logPlugin: newLogPlugin(config),
 	}
+	plugin.Plugin = devkit.NewPlugin(plugin.logPlugin.HandleLog)
 
 	err := config.Adapter.Initialize(config.StoragePath)
 
 	return plugin, err
-}
-
-func (p PersistencyPlugin) LogPlugin() xLogPlugin {
-	return p.logPlugin
 }
 
 type logPlugin struct {
@@ -56,8 +46,8 @@ func newLogPlugin(config Config) logPlugin {
 	return logPlugin{config, allowList}
 }
 
-func (p logPlugin) HandleLog(streamId string, log xLog) {
-	if allowed, ok := p.allowList[streamId]; !ok || allowed {
-		p.config.Adapter.AppendLogs(streamId, log.Message)
+func (p logPlugin) HandleLog(log logRush.Log) {
+	if allowed, ok := p.allowList[log.Stream]; !ok || allowed {
+		p.config.Adapter.AppendLogs(log.Stream, log.Message)
 	}
 }
