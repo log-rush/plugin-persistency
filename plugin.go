@@ -1,12 +1,15 @@
 package pluginPersistency
 
 import (
+	"strings"
+
 	logRush "github.com/log-rush/server-devkit"
 	"github.com/log-rush/server-devkit/pkg/devkit"
 )
 
 type Config struct {
 	Adapter          StorageAdapter
+	LogDelimiter     string
 	StreamsBlacklist []string
 	StreamsWhitelist []string
 }
@@ -43,8 +46,12 @@ func newLogPlugin(config Config) logPlugin {
 	return logPlugin{config, allowList}
 }
 
-func (p logPlugin) HandleLog(log logRush.Log) {
+func (p *logPlugin) HandleLog(log logRush.Log) {
 	if allowed, ok := p.allowList[log.Stream]; !ok || allowed {
-		p.config.Adapter.AppendLogs(log.Stream, log.Message)
+		message := log.Message
+		if !strings.HasSuffix(message, p.config.LogDelimiter) {
+			message = message + p.config.LogDelimiter
+		}
+		p.config.Adapter.AppendLogs(log.Stream, message)
 	}
 }
