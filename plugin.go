@@ -16,18 +16,20 @@ type Config struct {
 
 type PersistencyPlugin struct {
 	config    Config
-	logPlugin logPlugin
-	Plugin    logRush.Plugin
+	logPlugin *logPlugin
+	Plugin    *logRush.Plugin
 }
 
-func NewPersistencyPlugin(config Config) PersistencyPlugin {
+func NewPersistencyPlugin(config Config) *PersistencyPlugin {
 	plugin := PersistencyPlugin{
 		config:    config,
 		logPlugin: newLogPlugin(config),
 	}
-	plugin.Plugin = devkit.NewPlugin(plugin.logPlugin.HandleLog)
 
-	return plugin
+	p := devkit.NewPlugin(plugin.logPlugin.HandleLog)
+	plugin.Plugin = &p
+
+	return &plugin
 }
 
 type logPlugin struct {
@@ -35,7 +37,7 @@ type logPlugin struct {
 	allowList map[string]bool
 }
 
-func newLogPlugin(config Config) logPlugin {
+func newLogPlugin(config Config) *logPlugin {
 	allowList := map[string]bool{}
 	for _, whiteListed := range config.StreamsWhitelist {
 		allowList[whiteListed] = true
@@ -43,7 +45,7 @@ func newLogPlugin(config Config) logPlugin {
 	for _, blackListed := range config.StreamsBlacklist {
 		allowList[blackListed] = false
 	}
-	return logPlugin{config, allowList}
+	return &logPlugin{config, allowList}
 }
 
 func (p *logPlugin) HandleLog(log logRush.Log) {
