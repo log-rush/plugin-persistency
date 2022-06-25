@@ -7,7 +7,6 @@ import (
 
 type Config struct {
 	Adapter          StorageAdapter
-	StoragePath      string
 	StreamsBlacklist []string
 	StreamsWhitelist []string
 }
@@ -18,16 +17,14 @@ type PersistencyPlugin struct {
 	Plugin    logRush.Plugin
 }
 
-func NewPersistencyPlugin(config Config) (PersistencyPlugin, error) {
+func NewPersistencyPlugin(config Config) PersistencyPlugin {
 	plugin := PersistencyPlugin{
 		config:    config,
 		logPlugin: newLogPlugin(config),
 	}
 	plugin.Plugin = devkit.NewPlugin(plugin.logPlugin.HandleLog)
 
-	err := config.Adapter.Initialize(config.StoragePath)
-
-	return plugin, err
+	return plugin
 }
 
 type logPlugin struct {
