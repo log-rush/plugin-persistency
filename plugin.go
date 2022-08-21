@@ -3,8 +3,8 @@ package pluginPersistency
 import (
 	"strings"
 
-	logRush "github.com/log-rush/server-devkit"
-	"github.com/log-rush/server-devkit/pkg/devkit"
+	logRush "github.com/log-rush/server-devkit/v2"
+	"github.com/log-rush/server-devkit/v2/pkg/devkit"
 )
 
 type Config struct {
@@ -12,24 +12,27 @@ type Config struct {
 	LogDelimiter     string
 	StreamsBlacklist []string
 	StreamsWhitelist []string
+	ExposeLogHistory bool
 }
 
 type PersistencyPlugin struct {
-	config    Config
-	logPlugin *logPlugin
-	Plugin    *logRush.Plugin
+	config       Config
+	logPlugin    *logPlugin
+	routerPlugin *routerPlugin
+	Plugin       logRush.Plugin
 }
 
-func NewPersistencyPlugin(config Config) *PersistencyPlugin {
+func NewPersistencyPlugin(config Config) PersistencyPlugin {
 	plugin := PersistencyPlugin{
-		config:    config,
-		logPlugin: newLogPlugin(config),
+		config:       config,
+		logPlugin:    newLogPlugin(config),
+		routerPlugin: newRouterPlugin(config),
 	}
 
-	p := devkit.NewPlugin(plugin.logPlugin.HandleLog)
-	plugin.Plugin = &p
+	p := devkit.NewPlugin("persistency", plugin.logPlugin.HandleLog, plugin.routerPlugin.SetupRouter)
+	plugin.Plugin = p
 
-	return &plugin
+	return plugin
 }
 
 type logPlugin struct {
