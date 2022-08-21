@@ -1,6 +1,8 @@
 package pluginPersistency
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+)
 
 type routerPlugin struct {
 	config Config
@@ -16,9 +18,9 @@ func (p *routerPlugin) SetupRouter(router fiber.Router) {
 	router.Get("/files/:key", func(c *fiber.Ctx) error {
 		key := c.Params("key")
 		return c.Status(200).JSON(struct {
-			files []string
+			Files []string `json:"files"`
 		}{
-			files: p.config.Adapter.ListLogFiles(key),
+			Files: p.config.Adapter.ListLogFiles(key),
 		})
 	})
 
