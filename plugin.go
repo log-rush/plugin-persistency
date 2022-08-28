@@ -3,8 +3,9 @@ package pluginPersistency
 import (
 	"strings"
 
-	logRush "github.com/log-rush/server-devkit/v2"
-	"github.com/log-rush/server-devkit/v2/pkg/devkit"
+	"github.com/log-rush/distribution-server/domain"
+	"github.com/log-rush/distribution-server/pkg/app"
+	"github.com/log-rush/distribution-server/pkg/devkit"
 )
 
 type Config struct {
@@ -19,7 +20,7 @@ type PersistencyPlugin struct {
 	config       Config
 	logPlugin    *logPlugin
 	routerPlugin *routerPlugin
-	Plugin       logRush.Plugin
+	Plugin       app.Plugin
 }
 
 func NewPersistencyPlugin(config Config) PersistencyPlugin {
@@ -29,7 +30,12 @@ func NewPersistencyPlugin(config Config) PersistencyPlugin {
 		routerPlugin: newRouterPlugin(config),
 	}
 
-	p := devkit.NewPlugin("persistency", plugin.logPlugin.HandleLog, plugin.routerPlugin.SetupRouter)
+	p := devkit.NewPlugin(
+		"persistency",
+		plugin.logPlugin.HandleLog,
+		plugin.routerPlugin.SetupRouter,
+		nil,
+	)
 	plugin.Plugin = p
 
 	return plugin
@@ -51,7 +57,7 @@ func newLogPlugin(config Config) *logPlugin {
 	return &logPlugin{config, allowList}
 }
 
-func (p *logPlugin) HandleLog(log logRush.Log) {
+func (p *logPlugin) HandleLog(log domain.Log) {
 	if allowed, ok := p.allowList[log.Stream]; !ok || allowed {
 		message := log.Message
 		if !strings.HasSuffix(message, p.config.LogDelimiter) {
