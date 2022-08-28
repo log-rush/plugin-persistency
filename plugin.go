@@ -32,9 +32,15 @@ func NewPersistencyPlugin(config Config) PersistencyPlugin {
 
 	p := devkit.NewPlugin(
 		"persistency",
-		plugin.logPlugin.HandleLog,
-		plugin.routerPlugin.SetupRouter,
-		nil,
+		devkit.PluginHandlers{
+			LogHandler:    plugin.logPlugin.HandleLog,
+			RouterHandler: plugin.routerPlugin.SetupRouter,
+		},
+		devkit.PluginHooks{
+			OnDeInit: func(context *app.Context) {
+				plugin.logPlugin.config.Adapter.Shutdown()
+			},
+		},
 	)
 	plugin.Plugin = p
 

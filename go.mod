@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/gofiber/fiber/v2 v2.36.0
-	github.com/log-rush/distribution-server v0.1.0
+	github.com/log-rush/distribution-server v0.2.1
 )
 
 require (
